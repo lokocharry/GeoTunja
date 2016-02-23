@@ -39,9 +39,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'floppyforms',
-    'gcm',
     'vote',
     'rutas',
+    'gcm',
 )
 
 MIDDLEWARE_CLASSES = (
