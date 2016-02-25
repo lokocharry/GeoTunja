@@ -83,6 +83,7 @@ def crearAlerta(request):
 			evento.the_geom=pnt
 			evento.comentario=request.POST['comentario']
 			evento.tipo=request.POST['comentario'][0]
+			print request.POST['comentario'][0]
 			evento.save()
 			response_dict.update({'mensage': 'Creado exitoso'})
 		except Exception, e:

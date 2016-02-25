@@ -30,7 +30,7 @@ class RutasTunja(models.Model):
         else:
             return self.osm_name
     class Meta:
-        managed = True
+        managed = False
         db_table = 'rutas_tunja'
 
 class RutasTunjaVerticesPgr(models.Model):
@@ -46,13 +46,15 @@ class RutasTunjaVerticesPgr(models.Model):
         return unicode(self.id)
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'rutas_tunja_vertices_pgr'
 
 class EventoRuta(models.Model):
     id = models.AutoField(primary_key=True)
     activo = models.BooleanField(default=True)
-    verificado = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+    duracion = models.PositiveIntegerField(default=0)
+    #verificado = models.BooleanField(default=False)
     comentario = models.CharField(max_length=200, null=True, blank=True)
     tipo = models.CharField(max_length=1, choices=TIPO_EVENTO)
     the_geom = models.PointField(srid=4326, null=True, blank=True)
@@ -60,10 +62,11 @@ class EventoRuta(models.Model):
     votos = VotableManager()
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'evento_ruta'
 
 class EstacionDeServicio(models.Model):
+    id = models.AutoField(primary_key=True)
     nombre=models.CharField(max_length=50)
     precio_gasolina = models.IntegerField()
     precio_acpm = models.IntegerField()
@@ -72,5 +75,15 @@ class EstacionDeServicio(models.Model):
     objects = models.GeoManager()
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'estacion_de_servicio'
+
+class Restricciones(models.Model):
+    rid = models.AutoField(primary_key=True)
+    to_cost = models.FloatField(blank=True, null=True)
+    target_id = models.IntegerField(blank=True, null=True)
+    via_path = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'restricciones'
