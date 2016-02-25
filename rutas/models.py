@@ -51,7 +51,7 @@ class RutasTunjaVerticesPgr(models.Model):
 
 class EventoRuta(models.Model):
     id = models.AutoField(primary_key=True)
-    activo = models.BooleanField(default=True)
+    #activo = models.BooleanField(default=True)
     fecha = models.DateTimeField(auto_now_add=True)
     duracion = models.PositiveIntegerField(default=0)
     #verificado = models.BooleanField(default=False)

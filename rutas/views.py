@@ -10,6 +10,25 @@ from django.contrib.auth.models import User
 #SELECT st_asgeojson(the_geom), ST_Distance(ST_GeomFromText('POINT(-114.053205 51.069644)',4326),the_geom) AS distance
 #FROM rutas_tunja ORDER BY distance ASC LIMIT 1;
 
+#from gcm.signals import device_registered
+#from django.contrib.auth.models import User
+#from alertas.models import Usuario
+#try:
+	#import json
+#except:
+    #import django.utils.simplejson as json
+#
+#def device_registered_handler(sender, **kwargs):
+	#request = kwargs['request']
+	#device = kwargs['device']
+	#body_unicode = request.body.decode('utf-8')
+	#body = json.loads(body_unicode)
+	#user = User.objects.create_user(username=body['email'], email=body['email'], password=body['password'])
+	#usuario = Usuario(usuario=user, dispositivo=device)
+	#usuario.save()
+#device_registered.connect(device_registered_handler)
+
+
 def calcularRuta(request):
 	if request.method == "GET":
 		orilat = request.GET.get('orilat')
@@ -58,7 +77,7 @@ def obtenerNombreRuta(request):
 def obtenerAlertas(request):
 	if request.method == "GET":
 		cursor = connection.cursor()
-		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, id FROM evento_ruta WHERE activo=TRUE AND verificado=TRUE;"
+		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, id FROM evento_ruta;"#Terminar consulta
 		cursor.execute(consulta)
 		alertas=cursor.fetchall()
 		return HttpResponse(json.dumps(alertas), content_type='application/json')
@@ -82,8 +101,8 @@ def crearAlerta(request):
 			pnt = GEOSGeometry('POINT(%s %s)' % (lon, lat))
 			evento.the_geom=pnt
 			evento.comentario=request.POST['comentario']
-			evento.tipo=request.POST['comentario'][0]
-			print request.POST['comentario'][0]
+			evento.tipo=request.POST['tipo'][0]
+			evento.duracion=request.POST['duracion']
 			evento.save()
 			response_dict.update({'mensage': 'Creado exitoso'})
 		except Exception, e:
