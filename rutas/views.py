@@ -10,23 +10,26 @@ from django.contrib.auth.models import User
 #SELECT st_asgeojson(the_geom), ST_Distance(ST_GeomFromText('POINT(-114.053205 51.069644)',4326),the_geom) AS distance
 #FROM rutas_tunja ORDER BY distance ASC LIMIT 1;
 
-#from gcm.signals import device_registered
-#from django.contrib.auth.models import User
-#from alertas.models import Usuario
-#try:
-	#import json
-#except:
-    #import django.utils.simplejson as json
-#
-#def device_registered_handler(sender, **kwargs):
-	#request = kwargs['request']
-	#device = kwargs['device']
-	#body_unicode = request.body.decode('utf-8')
-	#body = json.loads(body_unicode)
-	#user = User.objects.create_user(username=body['email'], email=body['email'], password=body['password'])
-	#usuario = Usuario(usuario=user, dispositivo=device)
-	#usuario.save()
-#device_registered.connect(device_registered_handler)
+from gcm.signals import device_registered
+from django.contrib.auth.models import User
+from usuarios.models import Usuario
+try:
+	import json
+except:
+	import django.utils.simplejson as json
+
+def device_registered_handler(sender, **kwargs):
+	request = kwargs['request']
+	device = kwargs['device']
+	body_unicode = request.body.decode('utf-8')
+	body = json.loads(body_unicode)
+	user = User.objects.create_user(username=body['email'], email=body['email'], password=body['password'])
+	user.first_name=body['name']
+	user.save()
+	usuario = Usuario(usuario=user, dispositivo=device)
+	usuario.save()
+	print "asdtqywfehgdvasd"
+device_registered.connect(device_registered_handler)
 
 
 def calcularRuta(request):
@@ -114,7 +117,7 @@ def votarEventoUp(request):
 	response_dict = {}
 	if request.method == "POST":
 		try:
-			user=User.objects.get(id=1)
+			user=User.objects.get(email=request.POST['email'])
 			alerta=EventoRuta.objects.filter(id=request.POST['id'])[0]
 			alerta.votos.up(user)
 			response_dict.update({'mensage': 'Voto realizado'})
@@ -129,7 +132,7 @@ def votarEventoDown(request):
 	response_dict = {}
 	if request.method == "POST":
 		try:
-			user=User.objects.get(id=1)
+			user=User.objects.get(email=request.POST['email'])
 			alerta=EventoRuta.objects.filter(id=request.POST['id'])[0]
 			alerta.votos.down(user)
 			response_dict.update({'mensage': 'Voto realizado'})
@@ -137,4 +140,23 @@ def votarEventoDown(request):
 			print '%s (%s)' % (e.message, type(e))
 			response_dict.update({'mensage': 'Ya ha votado este evento'})
 			return HttpResponse(json.dumps(response_dict), content_type='application/json')
+		return HttpResponse(json.dumps(response_dict), content_type='application/json')
+
+from django.contrib.auth import authenticate, login
+@csrf_exempt
+def ingresar(request):
+	response_dict = {}
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username, password=password)
+	if user is not None:
+		if user.is_active:
+			login(request, user)
+			response_dict.update({'mensage': '200'})
+			return HttpResponse(json.dumps(response_dict), content_type='application/json')
+		else:
+			response_dict.update({'mensage': '600'})
+			return HttpResponse(json.dumps(response_dict), content_type='application/json')
+	else:
+		response_dict.update({'mensage': '700'})
 		return HttpResponse(json.dumps(response_dict), content_type='application/json')
