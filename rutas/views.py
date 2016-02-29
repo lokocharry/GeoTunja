@@ -6,6 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.gis.geos import GEOSGeometry
 from rutas.models import EventoRuta
 from django.contrib.auth.models import User
+from bs4 import BeautifulSoup
+import xmltodict, json
 
 #SELECT st_asgeojson(the_geom), ST_Distance(ST_GeomFromText('POINT(-114.053205 51.069644)',4326),the_geom) AS distance
 #FROM rutas_tunja ORDER BY distance ASC LIMIT 1;
@@ -63,6 +65,28 @@ def calcularRutaAlterna(request):
 		cursor.execute(consulta)
 		destino=cursor.fetchone()[0]
 		cursor.execute("SELECT st_asgeojson(the_geom) FROM pgr_astar('SELECT id, source, target, km as cost, reverse_cost, x1, y1, x2, y2 FROM rutas_tunja', %d, %d, true, true ), rutas_tunja where id=id2;" % (origen, destino))
+		res=cursor.fetchall()
+		return HttpResponse(json.dumps(res), content_type='application/json')
+
+def obtenerDirecciones(request):
+	if request.method == "GET":
+		orilat = request.GET.get('orilat')
+		orilon = request.GET.get('orilon')
+		deslat = request.GET.get('deslat')
+		deslon = request.GET.get('deslon')
+		cursor = connection.cursor()
+		consulta= "SELECT id, ST_Distance(ST_SetSRID(ST_Point("+orilat+", "+orilon+"), 4326), the_geom) AS distance FROM rutas_tunja_vertices_pgr ORDER BY distance ASC LIMIT 1;"
+		cursor.execute(consulta)
+		origen=cursor.fetchone()[0]
+		consulta= "SELECT id, ST_Distance(ST_SetSRID(ST_Point("+deslat+", "+deslon+"), 4326), the_geom) AS distance FROM rutas_tunja_vertices_pgr ORDER BY distance ASC LIMIT 1;"
+		cursor.execute(consulta)
+		destino=cursor.fetchone()[0]
+		cursor.execute("SELECT xml_directions(%d, %d, 'rutas_tunja');" % (origen, destino))
+		y=BeautifulSoup(str(cursor.fetchall()))
+		steps=y.directions.findAll("step")
+		a=""
+		for i in steps:
+			a+=str(i) 
 		res=cursor.fetchall()
 		return HttpResponse(json.dumps(res), content_type='application/json')
 
