@@ -82,12 +82,10 @@ def obtenerDirecciones(request):
 		cursor.execute(consulta)
 		destino=cursor.fetchone()[0]
 		cursor.execute("SELECT xml_directions(%d, %d, 'rutas_tunja');" % (origen, destino))
-		y=BeautifulSoup(str(cursor.fetchall()))
-		steps=y.directions.findAll("step")
-		a=""
+		y=BeautifulSoup(x)
+		steps=y.directions.findAll("text")
 		for i in steps:
-			a+=str(i) 
-		res=cursor.fetchall()
+			print i.text
 		return HttpResponse(json.dumps(res), content_type='application/json')
 
 def obtenerNombreRuta(request):

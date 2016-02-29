@@ -55,7 +55,7 @@ tlu text := 'm'; -- total length units
 pre_string text;
 
 
-steps_fragment text:='XMLELEMENT(NAME step,XMLELEMENT(NAME text,''Start from
+steps_fragment text:='XMLELEMENT(NAME step,XMLELEMENT(NAME text,''Inicia en
 ';
 line_fragment text;
 
