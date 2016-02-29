@@ -28,4 +28,5 @@ urlpatterns = [
     url(r'^votarEventoUp/', 'rutas.views.votarEventoUp', name='votarEventoUp'),
     url(r'^votarEventoDown/', 'rutas.views.votarEventoDown', name='votarEventoDown'),
     url(r'^ingresar/', 'rutas.views.ingresar', name='ingresar'),
+    url(r'^obtenerDirecciones/', 'rutas.views.obtenerDirecciones', name='obtenerDirecciones'),
 ]

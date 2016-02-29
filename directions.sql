@@ -27,9 +27,10 @@ the_route CURSOR FOR SELECT b.id, b.the_geom, b.km, b.osm_name FROM pgr_astar('
                          y1,
                          x2,
                          y2,
-                         cost::double precision AS cost
+                         cost::double precision AS cost,
+                         reverse_cost
                         FROM rutas_tunja',
-                s_id, t_id, false, false) as a, rutas_tunja as b
+                s_id, t_id, true, true) as a, rutas_tunja as b
                 WHERE b.id=a.id2;
 --variabili per il fetch
 GID_1 integer;
@@ -248,13 +249,13 @@ tlu := 'km';
 END IF;
 pre_string:='XMLROOT(XMLELEMENT(NAME result, XMLELEMENT(NAME route,
 XMLELEMENT(NAME total_length, ''circa '||tot_len||' '||tlu||'''),
-XMLELEMENT( NAME total_estimated_time, ''about '||tot_time||' min''),
+XMLELEMENT( NAME total_estimated_time, ''cerca de '||tot_time||' min''),
 XMLELEMENT(NAME directions,';
 steps_fragment := steps_fragment||streets[0]||'''))';
 for j in 0..i LOOP
 --RAISE NOTICE'geometria ------- %/',ST_AsText(geoms[j]);
 steps_fragment := steps_fragment||',XMLELEMENT(NAME step,XMLELEMENT(NAME
-text,'||''''||directions[j]||' '||streets[j]||' (about
+text,'||''''||directions[j]||' '||streets[j]||' (cerca de
 '||trunc(lengths[j])||' m)'||''''||'),XMLELEMENT(NAME
 line,'''||ST_AsText(geoms[j])||'''))';
 END LOOP;
