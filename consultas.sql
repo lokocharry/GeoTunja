@@ -29,6 +29,9 @@ select * from pgr_astar(
 			HAVING b.id=nn(a.the_geom,0.00001,2,100))',
      4, 11, true, true);
 
+EXPLAIN ANALYZE SELECT the_geom FROM pgr_dijkstra('SELECT id, source, target, km as cost, reverse_cost, x1, y1, x2, y2 FROM rutas_tunja', 10, 40, true, true ) as a, rutas_tunja as b WHERE b.id=a.id2
+AND b.id NOT IN (SELECT nn(the_geom, 2, 2, 2) as id from evento_ruta);
+
 --Función de vecino más cercano
 create or replace function 
   nn(nearTo                   geometry

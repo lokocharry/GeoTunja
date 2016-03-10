@@ -8,6 +8,8 @@ from rutas.models import EventoRuta
 from django.contrib.auth.models import User
 from bs4 import BeautifulSoup
 import xmltodict, json
+from usuarios.models import Usuario
+from django.db.models import Q
 
 #SELECT st_asgeojson(the_geom), ST_Distance(ST_GeomFromText('POINT(-114.053205 51.069644)',4326),the_geom) AS distance
 #FROM rutas_tunja ORDER BY distance ASC LIMIT 1;
@@ -131,8 +133,12 @@ def crearAlerta(request):
 			evento.comentario=request.POST['comentario']
 			evento.tipo=request.POST['tipo'][0]
 			evento.duracion=request.POST['duracion']
+			print request.POST['email']
 			evento.save()
 			response_dict.update({'mensage': 'Creado exitoso'})
+			usuarios=Usuario.objects.filter(~Q(usuario__email=request.POST['email']))
+			for i in usuarios:
+				i.dispositivo.send_message({'msg':evento.comentario})
 		except Exception, e:
 			print '%s (%s)' % (e.message, type(e))
 		return HttpResponse(json.dumps(response_dict), content_type='application/json')
