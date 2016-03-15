@@ -137,8 +137,13 @@ def crearAlerta(request):
 			evento.save()
 			response_dict.update({'mensage': 'Creado exitoso'})
 			usuarios=Usuario.objects.filter(~Q(usuario__email=request.POST['email']))
+			data = {}
+			data['comentario'] = evento.comentario
+			data['lat']=str(evento.the_geom.y)
+			data['lon']=str(evento.the_geom.x)
+			data['tipo']=str(evento.tipo)
 			for i in usuarios:
-				i.dispositivo.send_message({'msg':evento.comentario})
+				i.dispositivo.send_message({'msg':str(json.dumps(data))})
 		except Exception, e:
 			print '%s (%s)' % (e.message, type(e))
 		return HttpResponse(json.dumps(response_dict), content_type='application/json')
