@@ -15,7 +15,6 @@ from django.db.models import Q
 #FROM rutas_tunja ORDER BY distance ASC LIMIT 1;
 
 from gcm.signals import device_registered
-from django.contrib.auth.models import User
 from usuarios.models import Usuario
 try:
 	import json
@@ -107,7 +106,15 @@ def obtenerNombreRuta(request):
 def obtenerAlertas(request):
 	if request.method == "GET":
 		cursor = connection.cursor()
-		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, id FROM evento_ruta;"#Terminar consulta
+		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, CASE  WHEN a.id=b.object_id THEN count(object_id) ELSE 0 END as votos FROM evento_ruta a, vote_vote b GROUP BY object_id, tipo, comentario, a.id, the_geom;"
+		cursor.execute(consulta)
+		alertas=cursor.fetchall()
+		return HttpResponse(json.dumps(alertas), content_type='application/json')
+
+def obtenerAlertasVerificadas(request):
+	if request.method == "GET":
+		cursor = connection.cursor()
+		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, count(object_id) as votos FROM evento_ruta a, vote_vote b WHERE a.id=b.object_id GROUP BY object_id, tipo, comentario, a.id, the_geom HAVING count(object_id)>=2;"
 		cursor.execute(consulta)
 		alertas=cursor.fetchall()
 		return HttpResponse(json.dumps(alertas), content_type='application/json')

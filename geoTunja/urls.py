@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^rutasAlt/', 'rutas.views.calcularRutaAlterna', name='rutaAlt'),
     url(r'^nombreRuta/', 'rutas.views.obtenerNombreRuta', name='rutas'),
     url(r'^alertas/', 'rutas.views.obtenerAlertas', name='alertas'),
+    url(r'^alertasVerificadas/', 'rutas.views.obtenerAlertasVerificadas', name='alertasVerificadas'),
     url(r'^crearAlerta/', 'rutas.views.crearAlerta', name='crearAlerta'),
     url(r'^estaciones/', 'rutas.views.obtenerEstacionesDeServicio', name='obtenerEstacionesDeServicio'),
     url(r'^votarEventoUp/', 'rutas.views.votarEventoUp', name='votarEventoUp'),
