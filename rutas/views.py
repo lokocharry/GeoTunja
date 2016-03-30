@@ -92,6 +92,10 @@ def obtenerDirecciones(request):
 			response_dict.update({str(idx): i.text})
 		return HttpResponse(json.dumps(response_dict), content_type='application/json')
 
+def obtenerDireccionesDeVerdad(request):
+	# Por hacer
+	pass
+
 def obtenerNombreRuta(request):
 	if request.method == "GET":
 		lat = request.GET.get('lat')
@@ -106,7 +110,7 @@ def obtenerNombreRuta(request):
 def obtenerAlertas(request):
 	if request.method == "GET":
 		cursor = connection.cursor()
-		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, CASE  WHEN a.id=b.object_id THEN count(object_id) ELSE 0 END as votos FROM evento_ruta a, vote_vote b GROUP BY object_id, tipo, comentario, a.id, the_geom;"
+		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, CASE WHEN a.id=b.object_id THEN count(object_id) ELSE 0 END as votos FROM evento_ruta a, vote_vote b GROUP BY object_id, tipo, comentario, a.id, the_geom;"
 		cursor.execute(consulta)
 		alertas=cursor.fetchall()
 		return HttpResponse(json.dumps(alertas), content_type='application/json')
