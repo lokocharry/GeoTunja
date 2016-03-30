@@ -164,8 +164,8 @@ def obtenerDireccionesDeVerdad(request):
 			nombre=i[2]
 			punto1=Point(lat, lon, nombre)
 			puntos.append(punto1);
-		orilat = request.GET.get('orilat')
-		orilon = request.GET.get('orilon')
+		orilat = float(request.GET.get('orilat'))
+		orilon = float(request.GET.get('orilon'))
 		yo=Point(orilat, orilon, "yo")
 		pinit=puntos[0]
 		angulo=angle(yo, pinit)
@@ -178,19 +178,20 @@ def obtenerDireccionesDeVerdad(request):
 		if angulo>180 and angulo<=360:
 			for i in puntos:
 				i.rotate180()
+		response_dict = {}
 		for index, i in enumerate(puntos, -1):
 			p1=puntos[index]
 			p2=puntos[index+1]
 			angulo=angle(p1, p2)
 			if angulo>0 and angulo<=90:
-				print "Derecha en "+p1.nombre
+				response_dict.update({str(index): "A la Derecha en "+p1.nombre})
 				for i in puntos:
 					i.rotate90()
 			if angulo>90 and angulo<=180:
-				print "Izquieda en "+p1.nombre
+				response_dict.update({str(index): "A la Izquierda en "+p1.nombre})
 				for i in puntos:
 					i.rotateInverse90()
-		return HttpResponse(lon, content_type='application/json')
+		return HttpResponse(json.dumps(response_dict), content_type='application/json')
 
 def obtenerNombreRuta(request):
 	if request.method == "GET":
