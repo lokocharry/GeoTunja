@@ -30,4 +30,5 @@ urlpatterns = [
     url(r'^votarEventoDown/', 'rutas.views.votarEventoDown', name='votarEventoDown'),
     url(r'^ingresar/', 'rutas.views.ingresar', name='ingresar'),
     url(r'^obtenerDirecciones/', 'rutas.views.obtenerDirecciones', name='obtenerDirecciones'),
+    url(r'^obtenerDireccionesDeVerdad/', 'rutas.views.obtenerDireccionesDeVerdad', name='obtenerDireccionesDeVerdad'),
 ]

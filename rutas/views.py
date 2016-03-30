@@ -21,6 +21,53 @@ try:
 except:
 	import django.utils.simplejson as json
 
+import math
+class Point(object):
+    '''Creates a point on a coordinate plane with values x and y.'''
+
+    COUNT = 0
+
+    def __init__(self, x, y, nombre):
+        '''Defines x and y variables'''
+        self.X = x
+        self.Y = y
+        self.nombre = nombre
+
+    def __str__(self):
+        return "Point(%s,%s)"%(self.X, self.Y) 
+
+    def getX(self):
+        return self.X
+
+    def getY(self):
+        return self.Y
+
+    def rotate90(self):
+    	aux1=self.X
+    	aux2=self.Y
+    	self.X=-aux2
+    	self.Y=aux1
+
+    def rotateInverse90(self):
+    	aux1=self.X
+    	aux2=self.Y
+    	self.X=aux2
+    	self.Y=-aux1
+
+    def rotate180(self):
+    	aux1=self.X
+    	aux2=self.Y
+    	self.X=-aux1
+    	self.Y=-aux2
+
+def angle(pointA, pointB):
+	from math import atan2, degrees, pi
+	dx = pointB.X - pointA.X
+	dy = pointB.Y - pointA.Y
+	angle_rad = atan2(dy,dx)
+	angle_deg = angle_rad*180.0/pi
+	return angle_deg
+
 def device_registered_handler(sender, **kwargs):
 	request = kwargs['request']
 	device = kwargs['device']
@@ -92,9 +139,58 @@ def obtenerDirecciones(request):
 			response_dict.update({str(idx): i.text})
 		return HttpResponse(json.dumps(response_dict), content_type='application/json')
 
+import ast
 def obtenerDireccionesDeVerdad(request):
-	# Por hacer
-	pass
+	if request.method == "GET":	
+		orilat = request.GET.get('orilat')
+		orilon = request.GET.get('orilon')
+		deslat = request.GET.get('deslat')
+		deslon = request.GET.get('deslon')
+		cursor = connection.cursor()
+		consulta= "SELECT id, ST_Distance(ST_SetSRID(ST_Point("+orilat+", "+orilon+"), 4326), the_geom) AS distance FROM rutas_tunja_vertices_pgr ORDER BY distance ASC LIMIT 1;"
+		cursor.execute(consulta)
+		origen=cursor.fetchone()[0]
+		consulta= "SELECT id, ST_Distance(ST_SetSRID(ST_Point("+deslat+", "+deslon+"), 4326), the_geom) AS distance FROM rutas_tunja_vertices_pgr ORDER BY distance ASC LIMIT 1;"
+		cursor.execute(consulta)
+		destino=cursor.fetchone()[0]
+		cursor.execute("SELECT id, st_asgeojson(the_geom), osm_name FROM pgr_dijkstra('SELECT id, source, target, cost, reverse_cost FROM rutas_tunja', %d, %d, true, true ), rutas_tunja where id=id2;" % (origen, destino))
+		ruta=cursor.fetchall()
+		data=list(ruta)
+		puntos=[]
+		for i in data:
+			pointA=ast.literal_eval(i[1])
+			lat=pointA["coordinates"][0][0]
+			lon=pointA["coordinates"][0][1]
+			nombre=i[2]
+			punto1=Point(lat, lon, nombre)
+			puntos.append(punto1);
+		orilat = request.GET.get('orilat')
+		orilon = request.GET.get('orilon')
+		yo=Point(orilat, orilon, "yo")
+		pinit=puntos[0]
+		angulo=angle(yo, pinit)
+		if angulo>0 and angulo<=90:
+			for i in puntos:
+				i.rotate90()
+		if angulo>90 and angulo<=180:
+			for i in puntos:
+				i.rotateInverse90()
+		if angulo>180 and angulo<=360:
+			for i in puntos:
+				i.rotate180()
+		for index, i in enumerate(puntos, -1):
+			p1=puntos[index]
+			p2=puntos[index+1]
+			angulo=angle(p1, p2)
+			if angulo>0 and angulo<=90:
+				print "Derecha en "+p1.nombre
+				for i in puntos:
+					i.rotate90()
+			if angulo>90 and angulo<=180:
+				print "Izquieda en "+p1.nombre
+				for i in puntos:
+					i.rotateInverse90()
+		return HttpResponse(lon, content_type='application/json')
 
 def obtenerNombreRuta(request):
 	if request.method == "GET":
