@@ -66,6 +66,8 @@ def angle(pointA, pointB):
 	dy = pointB.Y - pointA.Y
 	angle_rad = atan2(dy,dx)
 	angle_deg = angle_rad*180.0/pi
+	if angle_deg<0:
+		angle_deg+=360
 	return angle_deg
 
 def device_registered_handler(sender, **kwargs):
@@ -78,9 +80,7 @@ def device_registered_handler(sender, **kwargs):
 	user.save()
 	usuario = Usuario(usuario=user, dispositivo=device)
 	usuario.save()
-	print "asdtqywfehgdvasd"
 device_registered.connect(device_registered_handler)
-
 
 def calcularRuta(request):
 	if request.method == "GET":
@@ -167,30 +167,48 @@ def obtenerDireccionesDeVerdad(request):
 		orilat = float(request.GET.get('orilat'))
 		orilon = float(request.GET.get('orilon'))
 		yo=Point(orilat, orilon, "yo")
-		pinit=puntos[0]
+		pinit=puntos[1]
 		angulo=angle(yo, pinit)
-		if angulo>0 and angulo<=90:
-			for i in puntos:
-				i.rotate90()
-		if angulo>90 and angulo<=180:
-			for i in puntos:
-				i.rotateInverse90()
-		if angulo>180 and angulo<=360:
-			for i in puntos:
-				i.rotate180()
-		response_dict = {}
-		for index, i in enumerate(puntos, -1):
-			p1=puntos[index]
-			p2=puntos[index+1]
-			angulo=angle(p1, p2)
-			if angulo>0 and angulo<=90:
-				response_dict.update({str(index): "A la Derecha en "+p1.nombre})
+		if (angulo<=90 and angulo>=0) or (angulo>=270 and angulo<=360):
+			if angulo<=45 or angulo>=315:
+				print "Derecha"
 				for i in puntos:
 					i.rotate90()
-			if angulo>90 and angulo<=180:
-				response_dict.update({str(index): "A la Izquierda en "+p1.nombre})
+
+		if angulo>=90 and angulo<=270:
+			if angulo>=135 and angulo<=225:
+				print "Izquierda"
 				for i in puntos:
 					i.rotateInverse90()
+
+		if angulo>225 and angulo<315:
+			print "Atras"
+			for i in puntos:
+				i.rotate180()
+
+		print "Me toca girar: "+str(angulo)
+
+		response_dict = {}
+		for index, i in enumerate(puntos, -2):
+			p1=puntos[index+1]
+			p2=puntos[index+2]
+			angulo=angle(p1, p2)
+			print angulo
+
+			if (angulo<=90 and angulo>=0) or (angulo>=270 and angulo<=360):
+				if angulo<=45 or angulo>=315:
+					response_dict.update({str(index): "A la Derecha en "+p1.nombre})
+					print "A la Derecha en "+p1.nombre
+					for i in puntos:
+						i.rotate90()
+
+			if angulo>=90 and angulo<=270:
+				if angulo>=135 and angulo<=225:
+					response_dict.update({str(index): "A la Izquierda en "+p1.nombre})
+					print "A la Izquierda en "+p1.nombre
+					for i in puntos:
+						i.rotateInverse90()
+
 		return HttpResponse(json.dumps(response_dict), content_type='application/json')
 
 def obtenerNombreRuta(request):
