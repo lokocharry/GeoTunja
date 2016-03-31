@@ -60,6 +60,10 @@ class Point(object):
     	self.X=-aux1
     	self.Y=-aux2
 
+    def rotateAngle(self, teta):
+    	self.X=(self.X*math.cos(math.radians(teta)))-(self.Y*math.sin(math.radians(teta)))
+    	self.Y=(self.X*math.sin(math.radians(teta)))+(self.Y*math.cos(math.radians(teta)))
+
 def angle(pointA, pointB):
 	from math import atan2, degrees, pi
 	dx = pointB.X - pointA.X
@@ -173,41 +177,38 @@ def obtenerDireccionesDeVerdad(request):
 			if angulo<=45 or angulo>=315:
 				print "Derecha"
 				for i in puntos:
-					i.rotate90()
+					i.rotateAngle(90-angulo)
 
 		if angulo>=90 and angulo<=270:
 			if angulo>=135 and angulo<=225:
 				print "Izquierda"
 				for i in puntos:
-					i.rotateInverse90()
+					i.rotateAngle(90-angulo)
 
 		if angulo>225 and angulo<315:
 			print "Atras"
 			for i in puntos:
-				i.rotate180()
+				i.rotateAngle(90-angulo)
 
 		print "Me toca girar: "+str(angulo)
 
 		response_dict = {}
-		for index, i in enumerate(puntos, -2):
-			p1=puntos[index+1]
-			p2=puntos[index+2]
+		for index, i in enumerate(puntos, -1):
+			p1=puntos[index]
+			p2=puntos[index+1]
 			angulo=angle(p1, p2)
 			print angulo
-
 			if (angulo<=90 and angulo>=0) or (angulo>=270 and angulo<=360):
-				if angulo<=45 or angulo>=315:
-					response_dict.update({str(index): "A la Derecha en "+p1.nombre})
-					print "A la Derecha en "+p1.nombre
-					for i in puntos:
-						i.rotate90()
+				response_dict.update({str(index): "A la Derecha en "+p1.nombre})
+				print "A la Derecha en "+p1.nombre
+				for i in puntos:
+					i.rotateAngle(angulo)
 
 			if angulo>=90 and angulo<=270:
-				if angulo>=135 and angulo<=225:
-					response_dict.update({str(index): "A la Izquierda en "+p1.nombre})
-					print "A la Izquierda en "+p1.nombre
-					for i in puntos:
-						i.rotateInverse90()
+				response_dict.update({str(index): "A la Izquierda en "+p1.nombre})
+				print "A la Izquierda en "+p1.nombre
+				for i in puntos:
+					i.rotateAngle(angulo)
 
 		return HttpResponse(json.dumps(response_dict), content_type='application/json')
 
