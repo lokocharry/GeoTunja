@@ -99,7 +99,7 @@ def calcularRuta(request):
 		consulta= "SELECT id, ST_Distance(ST_SetSRID(ST_Point("+deslat+", "+deslon+"), 4326), the_geom) AS distance FROM rutas_tunja_vertices_pgr ORDER BY distance ASC LIMIT 1;"
 		cursor.execute(consulta)
 		destino=cursor.fetchone()[0]
-		cursor.execute("SELECT st_asgeojson(the_geom) FROM pgr_dijkstra('SELECT id, source, target, cost, reverse_cost FROM rutas_tunja', %d, %d, true, true ), rutas_tunja where id=id2;" % (origen, destino))
+		cursor.execute("SELECT st_asgeojson(the_geom), km*1000 as distancia, kmh as velocidad FROM pgr_dijkstra('SELECT a.id, source, target, km as cost, reverse_cost, x1, y1, x2, y2  FROM rutas_tunja as a LEFT JOIN (SELECT EXTRACT(EPOCH FROM (fecha+(duracion|| time_format)::interval-NOW())) as diferencia, nn(the_geom, 2, 2, 2) as id FROM evento_ruta GROUP BY diferencia, the_geom HAVING EXTRACT(EPOCH FROM (fecha+(duracion || time_format)::interval -NOW()))>0) as b ON a.id = b.id WHERE b.id IS NULL GROUP BY a.id', %d, %d, true, true) as c, rutas_tunja as d WHERE id=id2;" % (origen, destino))
 		res=cursor.fetchall()
 		return HttpResponse(json.dumps(res), content_type='application/json')
 
@@ -226,7 +226,7 @@ def obtenerNombreRuta(request):
 def obtenerAlertas(request):
 	if request.method == "GET":
 		cursor = connection.cursor()
-		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, CASE WHEN a.id=b.object_id THEN count(object_id) ELSE 0 END as votos FROM evento_ruta a, vote_vote b GROUP BY object_id, tipo, comentario, a.id, the_geom;"
+		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, CASE WHEN a.id=b.object_id THEN count(object_id) ELSE 0 END as votos FROM evento_ruta a, vote_vote b GROUP BY object_id, tipo, comentario, a.id, the_geom, fecha, duracion, time_format HAVING EXTRACT(EPOCH FROM (fecha+(duracion || time_format)::interval -NOW()))>0"
 		cursor.execute(consulta)
 		alertas=cursor.fetchall()
 		return HttpResponse(json.dumps(alertas), content_type='application/json')
@@ -234,7 +234,7 @@ def obtenerAlertas(request):
 def obtenerAlertasVerificadas(request):
 	if request.method == "GET":
 		cursor = connection.cursor()
-		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, count(object_id) as votos FROM evento_ruta a, vote_vote b WHERE a.id=b.object_id GROUP BY object_id, tipo, comentario, a.id, the_geom HAVING count(object_id)>=2;"
+		consulta= "SELECT st_asgeojson(the_geom), tipo, comentario, a.id, count(object_id) as votos FROM evento_ruta a, vote_vote b WHERE a.id=b.object_id GROUP BY object_id, tipo, comentario, a.id, the_geom HAVING count(object_id)>=1 AND EXTRACT(EPOCH FROM (fecha+(duracion || time_format)::interval -NOW()))>0;"
 		cursor.execute(consulta)
 		alertas=cursor.fetchall()
 		return HttpResponse(json.dumps(alertas), content_type='application/json')
